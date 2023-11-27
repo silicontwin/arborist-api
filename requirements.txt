@@ -1,0 +1,13 @@
+# requirements.txt
+
+fastapi
+jupyterlab
+mangum
+matplotlib
+numpy
+pandas
+pytest
+scipy
+seaborn
+git+https://github.com/andrewherren/StochasticTree.git#subdirectory=python-package
+uvicorn
