@@ -9,20 +9,28 @@ from pydantic import BaseModel
 from typing import List
 import numpy as np
 
+# ------------------------------------------------------------------------------
+
 app = FastAPI()
 model = BartModel()
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# ------------------------------------------------------------------------------
+
 # Define a Pydantic model for the input data
 class ModelInput(BaseModel):
     X: List[List[float]]  # Assuming X is a 2D array (list of lists)
     y: List[float]        # Assuming y is a 1D array (list)
 
+# ------------------------------------------------------------------------------
+
 @app.get("/")
 async def main():
     return FileResponse('static/index.html') # Serve index.html from /static
+
+# ------------------------------------------------------------------------------
 
 @app.post("/predict")
 async def make_prediction(input_data: ModelInput):
@@ -38,7 +46,9 @@ async def make_prediction(input_data: ModelInput):
     except Exception as e:
         print(f"Error during prediction: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+# ------------------------------------------------------------------------------
+
 @app.post("/test_predict")
 async def test_prediction():
     try:
@@ -50,6 +60,8 @@ async def test_prediction():
     except Exception as e:
         print(f"Error during test prediction: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# ------------------------------------------------------------------------------
 
 @app.post("/uploadfile/")
 async def create_upload_file(file: UploadFile = File(...)):
