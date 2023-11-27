@@ -1,0 +1,124 @@
+<!-- static/index.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Upload SPSS File</title>
+    <style>
+      #uploadForm {
+        margin-bottom: 10px;
+      }
+    </style>
+    <script>
+      let selectedFile = null;
+      let uploadedData = null;
+      let fullData = null;
+
+      function handleFileSelect(event) {
+        selectedFile = event.target.files[0]; // Store the selected file
+      }
+
+      async function uploadFile() {
+        if (!selectedFile) {
+          alert('No file selected');
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        const response = await fetch('/uploadfile/', {
+          method: 'POST',
+          body: formData,
+        });
+
+        // console.log('Response received:', response);
+
+        if (!response.ok) {
+          alert('File upload failed');
+          return;
+        }
+
+        const data = await response.json();
+        // console.log('Parsed data:', data);
+
+        if (!data || !data.uploadedData) {
+          console.error('Invalid or missing data in response');
+          return;
+        }
+
+        fullData = data.uploadedData; // Store the full dataset
+
+        // Display only the first 5 rows in the uploadedData section
+        const sliceToShow = fullData.slice(0, 5);
+        document.getElementById('uploadedData').innerText = JSON.stringify(
+          sliceToShow,
+          null,
+          2,
+        );
+      }
+
+      async function makePrediction() {
+        const requestBody = {
+          X: fullData.map((row) => [
+            parseFloat(row.feature1),
+            parseFloat(row.feature2),
+          ]),
+          y: fullData.map((row) => parseFloat(row.y)),
+        };
+
+        // console.log('Sending data to /predict:', requestBody);
+
+        const response = await fetch('/predict', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+          alert('Prediction failed');
+          return;
+        }
+
+        const predData = await response.json();
+        document.getElementById('predictions').innerText = JSON.stringify(
+          predData,
+          null,
+          2,
+        );
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        document
+          .getElementById('fileInput')
+          .addEventListener('change', handleFileSelect);
+        document
+          .getElementById('uploadButton')
+          .addEventListener('click', uploadFile);
+        document
+          .getElementById('predictButton')
+          .addEventListener('click', makePrediction);
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="uploadForm">
+      <input type="file" id="fileInput" accept=".spss" />
+      <button id="uploadButton">Upload</button>
+    </div>
+
+    <button id="predictButton">Predict</button>
+
+    <div>
+      <h3>Uploaded Data (First 5 Rows):</h3>
+      <pre><code id="uploadedData"></code></pre>
+    </div>
+
+    <div>
+      <h3>Predictions:</h3>
+      <pre><code id="predictions"></code></pre>
+    </div>
+  </body>
+</html>
