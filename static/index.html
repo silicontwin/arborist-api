@@ -3,6 +3,7 @@
 <html>
   <head>
     <title>Upload SPSS File</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
       #uploadForm {
         margin-bottom: 10px;
@@ -87,6 +88,38 @@
           null,
           2,
         );
+        const trueY = fullData.map((row) => row.y);
+        const predictedY = predData.predictions.map((pred) => pred[0]);
+
+        renderScatterPlot(trueY, predictedY);
+      }
+
+      function renderScatterPlot(trueY, predictedY) {
+        const ctx = document.getElementById('predictionChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'scatter',
+          data: {
+            datasets: [
+              {
+                label: 'Predictions',
+                data: trueY.map((y, index) => ({ x: y, y: predictedY[index] })),
+                backgroundColor: 'rgba(0, 123, 255, 0.5)',
+              },
+            ],
+          },
+          options: {
+            scales: {
+              x: {
+                type: 'linear',
+                position: 'bottom',
+                title: { display: true, text: 'True y' },
+              },
+              y: {
+                title: { display: true, text: 'Predicted y' },
+              },
+            },
+          },
+        });
       }
 
       document.addEventListener('DOMContentLoaded', function () {
@@ -119,6 +152,11 @@
     <div>
       <h3>Predictions:</h3>
       <pre><code id="predictions"></code></pre>
+    </div>
+
+    <div>
+      <h3>Prediction Scatter Plot</h3>
+      <canvas id="predictionChart"></canvas>
     </div>
   </body>
 </html>
