@@ -7,7 +7,7 @@ import pyreadstat  # Required for saving to SPSS format
 rng = np.random.default_rng(101)
 
 # Define sample size and number of features
-n = 1000
+n = 10000
 p = 10
 
 # Generate random uniform features
