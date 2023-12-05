@@ -18,13 +18,11 @@
 
 ---
 
-# Preparing for AWS Lambda:
+# Preparing for AWS Lambda
 When deploying to AWS Lambda, we'll use `mangum` to wrap our FastAPI application. We'll need to modify the `main.py` to include:
 
 ```python
 from mangum import Mangum
-
 # FastAPI app code here
-
 handler = Mangum(app)
 ```
