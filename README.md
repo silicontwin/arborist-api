@@ -7,7 +7,7 @@
 - `pip install -r requirements.txt` - Install the Python dependencies listed in `requirements.txt`
 - `pip list` - List the installed Python packages
 - `deactivate` - Deactivate the virtual environment
-- `source env/bin/activate` - Reactivate the virtual environment)the freshly installed packages should now be available
+- `source env/bin/activate` - Reactivate the virtual environment (the freshly installed packages should now be available)
 - `uvicorn main:app --reload` - Run the FastAPI server
 
 ---
