@@ -82,22 +82,45 @@ async def test_prediction():
 
 # ------------------------------------------------------------------------------
 
+# @app.post("/uploadfile/")
+# async def create_upload_file(file: UploadFile = File(...)):
+#     print(f"Received file: {file.filename}, Content-Type: {file.content_type}")
+
+#     if not file.filename.endswith('.spss'):
+#         raise HTTPException(status_code=400, detail="Invalid file type")
+
+#     temp_file_path = f'temp_{file.filename}'
+#     with open(temp_file_path, 'wb') as buffer:
+#         shutil.copyfileobj(file.file, buffer)
+
+#     try:
+#         df = pd.read_spss(temp_file_path)
+#         # Return the entire DataFrame
+#         return {"uploadedData": df.to_dict(orient='records')}
+#     except Exception as e:
+#         os.remove(temp_file_path)
+#         raise HTTPException(status_code=500, detail=f"Error reading SPSS file: {e}")
+
 @app.post("/uploadfile/")
 async def create_upload_file(file: UploadFile = File(...)):
-    if not file.filename.endswith('.spss'):
-        raise HTTPException(status_code=400, detail="Invalid file type")
+    print(f"Received file: {file.filename}, Content-Type: {file.content_type}")
 
     temp_file_path = f'temp_{file.filename}'
     with open(temp_file_path, 'wb') as buffer:
         shutil.copyfileobj(file.file, buffer)
 
     try:
-        df = pd.read_spss(temp_file_path)
-        # Return the entire DataFrame
-        return {"uploadedData": df.to_dict(orient='records')}
+        if file.filename.endswith('.spss'):
+            df = pd.read_spss(temp_file_path)
+            return {"uploadedData": df.to_dict(orient='records')}
+        else:
+            # For non-SPSS files, read and return the file contents
+            with open(temp_file_path, 'r') as f:
+                file_content = f.read()
+            return {"uploadedData": file_content}
     except Exception as e:
         os.remove(temp_file_path)
-        raise HTTPException(status_code=500, detail=f"Error reading SPSS file: {e}")
+        raise HTTPException(status_code=500, detail=f"Error processing file: {e}")
 
 # ------------------------------------------------------------------------------
 
