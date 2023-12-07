@@ -12,9 +12,10 @@
 
 ---
 
-# Testing
+# Testing (run these commands from within your venv)
 
 - `python3 generate_test_spss.py` - Generate a test SPSS file to upload at `/`
+- `python3 generate_test_csv.py` - Generate a test CSV file to upload at `/`
 
 ---
 
