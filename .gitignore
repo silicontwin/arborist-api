@@ -128,3 +128,5 @@ cython_debug/
 
 # Test data
 *.spss
+*.sav
+*.csv
