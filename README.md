@@ -1,3 +1,7 @@
+# Status
+- **Arborist** is currently in alpha development. We're actively working on adding core API functionality. The beta testing phase has not yet commenced, and the `Issues` tab for this repository will remain disabled until the app reaches the appropriate level of usability/polish.
+
+---
 
 # Instructions
 
@@ -8,7 +12,7 @@
 - `pip list` - List the installed Python packages
 - `deactivate` - Deactivate the virtual environment
 - `source env/bin/activate` - Reactivate the virtual environment (the freshly installed packages should now be available)
-- `uvicorn main:app --reload` - Run the FastAPI server
+- `uvicorn app.main:app --reload` - Run the FastAPI server
 
 ---
 
