@@ -31,3 +31,9 @@ from mangum import Mangum
 # FastAPI app code here
 handler = Mangum(app)
 ```
+
+---
+
+# Docker
+
+- `docker build -t arborist-api .`
