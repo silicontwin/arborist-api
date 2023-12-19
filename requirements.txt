@@ -1,8 +1,8 @@
-# requirements.txt
+# /requirements.txt
 
 aiofiles
 fastapi
-git+https://github.com/andrewherren/StochasticTree.git#subdirectory=python-package
+# git+https://github.com/andrewherren/StochasticTree.git#subdirectory=python-package
 # git+https://github.com/andrewherren/StochasticTree.git@5aff2ba68b33db479703ca8dd815f437feb66ea6#subdirectory=python-package
 jupyterlab
 mangum
