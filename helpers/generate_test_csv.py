@@ -1,6 +1,7 @@
 # generate_test_csv.py
 import numpy as np
 import pandas as pd
+import os
 
 # Set random number generator
 rng = np.random.default_rng(101)
@@ -20,8 +21,16 @@ data = {'feature' + str(i+1): X[:, i] for i in range(p)}
 data['y'] = y
 df = pd.DataFrame(data)
 
-# Save DataFrame as CSV file
+# Define the filename for the CSV
 csv_filename = 'test_data.csv'
-df.to_csv(csv_filename, index=False)  # index=False to avoid writing row indices
 
-print(f"CSV file '{csv_filename}' has been created.")
+# Get the current directory of the script
+current_dir = os.path.dirname(__file__)
+
+# Define the file path for saving the CSV in the current directory
+csv_file_path = os.path.join(current_dir, csv_filename)
+
+# Save the DataFrame to CSV in the current directory
+df.to_csv(csv_file_path, index=False)  # index=False to avoid writing row indices
+
+print(f"CSV file '{csv_file_path}' has been created.")
