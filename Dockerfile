@@ -1,5 +1,4 @@
-# /Dockerfile
-
+# Use an Ubuntu base image
 FROM ubuntu:23.10
 
 # Set non-interactive timezone configuration
@@ -25,29 +24,25 @@ RUN git clone --recursive https://github.com/andrewherren/StochasticTree.git
 WORKDIR /usr/src/app/StochasticTree
 RUN git checkout 5aff2ba68b33db479703ca8dd815f437feb66ea6
 
-# Return to the previous working directory
+# Build the C++ components with detailed logging
+RUN rm -rf build && mkdir build
+RUN cmake -S . -B build -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
+RUN cmake --build build
+
+# Build and install the Python package from the StochasticTree
+WORKDIR /usr/src/app/StochasticTree/python-package
+RUN python3 setup.py build
+RUN python3 setup.py install
+
+# Return to the app directory
 WORKDIR /usr/src/app
 
-# Copy the current directory contents into the container at /usr/src/app
+# Copy the current directory contents into the container
 COPY . .
 
 # Install Python dependencies from requirements.txt
 # Exclude StochasticTree from requirements.txt if it's listed there
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Build the C++ components with detailed logging
-WORKDIR /usr/src/app/StochasticTree
-RUN rm -rf build && mkdir build
-RUN cmake -S . -B build -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
-RUN cmake --build build
-
-# Build StochasticTree manually
-WORKDIR /usr/src/app/StochasticTree/python-package
-RUN python3 setup.py build
-RUN python3 setup.py install
-
-# Return to the previous working directory
-WORKDIR /usr/src/app
 
 # Make port 8000 available
 EXPOSE 8000
