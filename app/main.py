@@ -1,7 +1,7 @@
 # /app/main.py
 from fastapi import FastAPI
 from .routes.data_routes import router as data_router
-# from .routes.predict_routes import router as predict_router
+from .routes.predict_routes import router as predict_router
 from .routes.upload_routes import router as upload_router
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,7 +18,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(data_router)
-# app.include_router(predict_router)
+app.include_router(predict_router)
 app.include_router(upload_router)
 
 if __name__ == "__main__":
