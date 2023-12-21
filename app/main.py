@@ -1,8 +1,11 @@
 # /app/main.py
 from fastapi import FastAPI
-from .routers.status import router as status
-from .routers.predict_routes import router as predict_router
-from .routers.upload_routes import router as upload_router
+
+# Absolute imports are required for pyinstaller
+from app.routers.predict_routes import router as predict_router
+from app.routers.status import router as status
+from app.routers.upload_routes import router as upload_router
+
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
