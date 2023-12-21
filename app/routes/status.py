@@ -2,6 +2,6 @@ from fastapi import APIRouter
 
 router = APIRouter()
 
-@router.get("/data")
+@router.get("/status")
 def read_data():
-    return {"status": "active"}
+    return {"api": "active"}
