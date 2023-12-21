@@ -6,7 +6,7 @@ router = APIRouter()
 @router.get(
     "/status", 
     summary="Check that the API is online [Arborist App]",
-    description="This endpoint checks if the API is online and reachable.",
+    description="This endpoint checks if the API is online and reachable, and is primarily used by the Arborist App to determine if the API is available when starting the app.",
     response_description="The status of the API",
     response_model=Dict[str, str],
     responses={
