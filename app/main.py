@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 
 # Absolute imports are required for pyinstaller
-from app.routers.predict_routes import router as predict_router
+from app.routers.predict import router as predict
 from app.routers.status import router as status
 from app.routers.upload_routes import router as upload_router
 
@@ -21,7 +21,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(status)
-app.include_router(predict_router)
+app.include_router(predict)
 app.include_router(upload_router)
 
 if __name__ == "__main__":
