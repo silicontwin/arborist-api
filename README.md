@@ -13,6 +13,7 @@
 - `deactivate` - Deactivate the virtual environment
 - `source env/bin/activate` - Reactivate the virtual environment (the freshly installed packages should now be available)
 - `uvicorn app.main:app --reload` - Run the FastAPI server
+- `http://localhost:8000/docs` - Open the Swagger UI to view endpoint documentation
 
 ---
 
