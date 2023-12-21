@@ -5,7 +5,7 @@ import shutil
 
 router = APIRouter()
 
-@router.post("/uploadfile/")
+@router.post("/upload/")
 async def create_upload_file(file: UploadFile = File(...)):
     temp_file_path = f'temp_{file.filename}'
     with open(temp_file_path, 'wb') as buffer:
