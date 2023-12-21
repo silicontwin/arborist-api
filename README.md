@@ -36,4 +36,4 @@ handler = Mangum(app)
 
 # Docker
 
-- `docker build -t arborist-api .`
+- `docker build --progress=plain -t arborist-api .`
