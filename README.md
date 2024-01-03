@@ -1,5 +1,5 @@
 # Project Status
-- The **Arborist API** is currently in alpha development. We're actively working on adding core API functionality. The beta testing phase has not yet commenced, and the `Issues` tab for this repository will remain disabled until the app reaches the appropriate level of usability/polish.
+The **Arborist API** is currently in alpha development. We're actively working on adding core API functionality. The beta testing phase has not yet commenced, and the `Issues` tab for this repository will remain disabled until the app reaches the appropriate level of usability/polish.
 
 ---
 
