@@ -1,5 +1,6 @@
 # /app/main.py
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
 # Absolute imports are required for pyinstaller
 from app.routers.predict import router as predict
@@ -23,6 +24,10 @@ app.add_middleware(
 app.include_router(status)
 app.include_router(predict)
 app.include_router(upload)
+
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/status")
 
 if __name__ == "__main__":
     import uvicorn
