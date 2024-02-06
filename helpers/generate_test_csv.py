@@ -7,7 +7,7 @@ import os
 rng = np.random.default_rng(101)
 
 # Define sample size and number of features
-n = 10000
+n = 100000
 p = 10
 
 # Generate random uniform features
@@ -22,7 +22,7 @@ data['y'] = y
 df = pd.DataFrame(data)
 
 # Define the filename for the CSV
-csv_filename = 'test_data.csv'
+csv_filename = 'test_data_n-100K_p-11.csv'
 
 # Get the current directory of the script
 current_dir = os.path.dirname(__file__)
