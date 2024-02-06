@@ -8,6 +8,7 @@ mangum
 matplotlib
 numpy
 pandas
+plotnine
 pyinstaller
 pytest
 pyreadstat
