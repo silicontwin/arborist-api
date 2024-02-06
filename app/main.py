@@ -3,10 +3,12 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
 # Absolute imports are required for pyinstaller
+from app.routers.plot import router as plot
 from app.routers.predict import router as predict
+from app.routers.settings import router as settings
 from app.routers.status import router as status
 from app.routers.upload import router as upload
-from app.routers.settings import router as settings
+
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -22,10 +24,12 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(status)
+app.include_router(plot)
 app.include_router(predict)
-app.include_router(upload)
 app.include_router(settings)
+app.include_router(status)
+app.include_router(upload)
+
 
 @app.get("/")
 async def root():
