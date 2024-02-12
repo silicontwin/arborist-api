@@ -9,6 +9,7 @@ matplotlib
 numpy
 pandas
 plotnine
+pyarrow
 pyinstaller
 pytest
 pyreadstat
