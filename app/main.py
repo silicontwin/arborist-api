@@ -7,9 +7,8 @@ from app.routers.plot import router as plot
 from app.routers.predict import router as predict
 from app.routers.settings import router as settings
 from app.routers.status import router as status
+from app.routers.summarize import router as summarize
 from app.routers.upload import router as upload
-from app.routers.pyarrow import router as pyarrow
-
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -30,7 +29,7 @@ app.include_router(predict)
 app.include_router(settings)
 app.include_router(status)
 app.include_router(upload)
-app.include_router(pyarrow)
+app.include_router(summarize)
 
 
 @app.get("/")
