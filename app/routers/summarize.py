@@ -36,14 +36,13 @@ async def read_data(request: FileProcessRequest):
         # Convert the table to a Pandas DataFrame for easier JSON serialization
         df = table.to_pandas()
 
-        # Handle non-finite float values
+        # Replace non-finite values with placeholders
         df.replace([pd.NA, pd.NaT], 'NaN', inplace=True)
         df.replace([float('inf'), float('-inf')], 'Infinity', inplace=True)
 
+        # Adjust DataFrame to include only a subset of rows
         if len(df) > 2 * num_rows_to_display:
-            # Placeholder DataFrame with the correct dimensions
             placeholder = pd.DataFrame({col: ['...'] for col in df.columns}, index=[0])
-            # Concatenate the first num_rows_to_display, placeholder, and last num_rows_to_display rows
             df_final = pd.concat([df.head(num_rows_to_display), placeholder, df.tail(num_rows_to_display)], ignore_index=True)
         else:
             df_final = df
@@ -53,8 +52,11 @@ async def read_data(request: FileProcessRequest):
 
         # Convert the DataFrame to JSON
         json_data = df_final.to_dict(orient='records')
-        
-        return {"data": json_data}
+
+        # Determine if each column is numeric and store the result in a dictionary
+        is_numeric = {col: pd.api.types.is_numeric_dtype(df[col]) for col in df.columns}
+
+        return {"data": json_data, "is_numeric": is_numeric}
     except Exception as e:
         # Log the exception for debugging
         print(f"Error processing file or directory: {e}")
