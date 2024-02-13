@@ -19,11 +19,11 @@ async def read_data(request: FileProcessRequest):
     try:
         # Construct the full file path using the workspacePath and fileName
         file_path = os.path.join(request.workspacePath, request.fileName)
-        
+
         # Check if the file or directory exists
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="File or directory not found")
-        
+
         # Create a dataset from the file or directory of CSV files
         dataset = ds.dataset(file_path, format='csv')
 
@@ -32,9 +32,13 @@ async def read_data(request: FileProcessRequest):
 
         # Convert the dataset to a PyArrow table
         table = dataset.to_table()
-        
+
         # Convert the table to a Pandas DataFrame for easier JSON serialization
         df = table.to_pandas()
+
+        # Handle non-finite float values
+        df.replace([pd.NA, pd.NaT], 'NaN', inplace=True)
+        df.replace([float('inf'), float('-inf')], 'Infinity', inplace=True)
 
         if len(df) > 2 * num_rows_to_display:
             # Placeholder DataFrame with the correct dimensions
@@ -43,6 +47,9 @@ async def read_data(request: FileProcessRequest):
             df_final = pd.concat([df.head(num_rows_to_display), placeholder, df.tail(num_rows_to_display)], ignore_index=True)
         else:
             df_final = df
+
+        # Convert non-finite float values to strings
+        df_final = df_final.applymap(lambda x: 'NaN' if pd.isna(x) else x)
 
         # Convert the DataFrame to JSON
         json_data = df_final.to_dict(orient='records')
