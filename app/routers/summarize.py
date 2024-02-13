@@ -11,7 +11,7 @@ class FileProcessRequest(BaseModel):
     fileName: str  # Can also be a directory of CSVs
     workspacePath: str
 
-@router.post("/pyarrow")
+@router.post("/summarize")
 async def read_data(request: FileProcessRequest):
     try:
         # Construct the full file path using the workspacePath and fileName
