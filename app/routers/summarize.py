@@ -4,12 +4,15 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import pyarrow.dataset as ds
 import os
+import pandas as pd
 
 router = APIRouter()
 
 class FileProcessRequest(BaseModel):
     fileName: str  # Can also be a directory of CSVs
     workspacePath: str
+
+num_rows_to_display = 5 # Number of rows to display in the JSON response
 
 @router.post("/summarize")
 async def read_data(request: FileProcessRequest):
@@ -23,18 +26,26 @@ async def read_data(request: FileProcessRequest):
         
         # Create a dataset from the file or directory of CSV files
         dataset = ds.dataset(file_path, format='csv')
-        
+
         # Apply filters or select columns (future Arborist feature)
         # Example to load specific columns: dataset = dataset.to_table(columns=['col1', 'col2'])
-        
+
         # Convert the dataset to a PyArrow table
         table = dataset.to_table()
         
         # Convert the table to a Pandas DataFrame for easier JSON serialization
         df = table.to_pandas()
-        
+
+        if len(df) > 2 * num_rows_to_display:
+            # Placeholder DataFrame with the correct dimensions
+            placeholder = pd.DataFrame({col: ['...'] for col in df.columns}, index=[0])
+            # Concatenate the first num_rows_to_display, placeholder, and last num_rows_to_display rows
+            df_final = pd.concat([df.head(num_rows_to_display), placeholder, df.tail(num_rows_to_display)], ignore_index=True)
+        else:
+            df_final = df
+
         # Convert the DataFrame to JSON
-        json_data = df.to_dict(orient='records')
+        json_data = df_final.to_dict(orient='records')
         
         return {"data": json_data}
     except Exception as e:
