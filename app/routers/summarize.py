@@ -11,12 +11,13 @@ router = APIRouter()
 class FileProcessRequest(BaseModel):
     fileName: str  # Can also be a directory of CSVs
     workspacePath: str
-
-num_rows_to_display = 5 # Number of rows to display in the JSON response
+    headTailRows: int = 20  # Number of head and tail observations to display
 
 @router.post("/summarize")
 async def read_data(request: FileProcessRequest):
     try:
+        num_rows_to_display = request.headTailRows
+
         # Construct the full file path using the workspacePath and fileName
         file_path = os.path.join(request.workspacePath, request.fileName)
 
@@ -40,7 +41,7 @@ async def read_data(request: FileProcessRequest):
         df.replace([pd.NA, pd.NaT], 'NaN', inplace=True)
         df.replace([float('inf'), float('-inf')], 'Infinity', inplace=True)
 
-        # Adjust DataFrame to include only a subset of rows
+        # Adjust DataFrame to include only a subset of rows based on num_rows_to_display
         if len(df) > 2 * num_rows_to_display:
             placeholder = pd.DataFrame({col: ['...'] for col in df.columns}, index=[0])
             df_final = pd.concat([df.head(num_rows_to_display), placeholder, df.tail(num_rows_to_display)], ignore_index=True)
@@ -58,6 +59,5 @@ async def read_data(request: FileProcessRequest):
 
         return {"data": json_data, "is_numeric": is_numeric}
     except Exception as e:
-        # Log the exception for debugging
         print(f"Error processing file or directory: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to process CSV file or directory: {str(e)}")
