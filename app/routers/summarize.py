@@ -5,6 +5,7 @@ from pydantic import BaseModel
 import pyarrow.dataset as ds
 import os
 import pandas as pd
+import numpy as np
 from app.model import BartModel
 import logging
 from typing import List
@@ -16,7 +17,7 @@ class FileProcessRequest(BaseModel):
     workspacePath: str
     selectedColumns: List[str] = []
     headTailRows: int = 20  # Number of head and tail observations to display
-    action: str = "summarize"
+    action: str = "summarize"  # Default action is summarize
 
 @router.post("/summarize")
 async def read_data(request: FileProcessRequest):
@@ -33,7 +34,7 @@ async def read_data(request: FileProcessRequest):
         # Create a dataset from the file or directory of CSV files
         dataset = ds.dataset(file_path, format='csv')
 
-        # Apply filters or select columns (future Arborist feature)
+        # Apply filters or select columns if required
         # Example to load specific columns: dataset = dataset.to_table(columns=['col1', 'col2'])
 
         # Convert the dataset to a PyArrow table
@@ -45,6 +46,10 @@ async def read_data(request: FileProcessRequest):
         # Replace non-finite values with placeholders
         df.replace([pd.NA, pd.NaT], 'NaN', inplace=True)
         df.replace([float('inf'), float('-inf')], 'Infinity', inplace=True)
+
+        # If action is 'analyze', prepend a 'predictions' column with random data
+        if request.action == "analyze":
+            df.insert(0, 'predictions', np.random.rand(df.shape[0]))
 
         # Adjust DataFrame to include only a subset of rows based on num_rows_to_display
         if len(df) > 2 * num_rows_to_display:
