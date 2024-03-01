@@ -5,13 +5,18 @@ from pydantic import BaseModel
 import pyarrow.dataset as ds
 import os
 import pandas as pd
+from app.model import BartModel
+import logging
+from typing import List
 
 router = APIRouter()
 
 class FileProcessRequest(BaseModel):
     fileName: str  # Can also be a directory of CSVs
     workspacePath: str
+    selectedColumns: List[str] = []
     headTailRows: int = 20  # Number of head and tail observations to display
+    action: str = "summarize"
 
 @router.post("/summarize")
 async def read_data(request: FileProcessRequest):
