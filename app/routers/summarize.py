@@ -59,7 +59,7 @@ async def read_data(request: FileProcessRequest):
                 y = X[:, -1]  
                 model.fit(X, y)
                 predictions = model.predict(X).flatten()
-                df.insert(0, 'predictions', predictions)  # Prepend predictions to the DataFrame
+                df.insert(0, 'Posterior Average (y hat)', predictions)  # Prepend predictions to the DataFrame
             else:
                 raise HTTPException(status_code=400, detail="No numeric columns found for analysis")
 
