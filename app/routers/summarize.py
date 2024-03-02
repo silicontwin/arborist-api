@@ -19,6 +19,9 @@ class FileProcessRequest(BaseModel):
     headTailRows: int = 20  # Number of head and tail observations to display
     action: str = "summarize"  # Default action is summarize
 
+# Instantiate the model
+model = BartModel()
+
 @router.post("/summarize")
 async def read_data(request: FileProcessRequest):
     try:
@@ -47,9 +50,18 @@ async def read_data(request: FileProcessRequest):
         df.replace([pd.NA, pd.NaT], 'NaN', inplace=True)
         df.replace([float('inf'), float('-inf')], 'Infinity', inplace=True)
 
-        # If action is 'analyze', prepend a 'predictions' column with random data
         if request.action == "analyze":
-            df.insert(0, 'predictions', np.random.rand(df.shape[0]))
+            # Select only numeric columns for the BART model
+            numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+            if numeric_cols:
+                X = df[numeric_cols].to_numpy()
+                # Assuming y is the last column, will need to make user selectable
+                y = X[:, -1]  
+                model.fit(X, y)
+                predictions = model.predict(X).flatten()
+                df.insert(0, 'predictions', predictions)  # Prepend predictions to the DataFrame
+            else:
+                raise HTTPException(status_code=400, detail="No numeric columns found for analysis")
 
         # Adjust DataFrame to include only a subset of rows based on num_rows_to_display
         if len(df) > 2 * num_rows_to_display:
@@ -69,5 +81,5 @@ async def read_data(request: FileProcessRequest):
 
         return {"data": json_data, "is_numeric": is_numeric}
     except Exception as e:
-        print(f"Error processing file or directory: {e}")
+        logging.error(f"Error processing file or directory: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to process CSV file or directory: {str(e)}")
