@@ -47,16 +47,18 @@ async def read_data(request: FileProcessRequest):
         df = table.to_pandas()
 
         # Replace non-finite values with placeholders
-        df.replace([pd.NA, pd.NaT], 'NaN', inplace=True)
-        df.replace([float('inf'), float('-inf')], 'Infinity', inplace=True)
+        # df.replace([pd.NA, pd.NaT], 'NaN', inplace=True)
+        # df.replace([float('inf'), float('-inf')], 'Infinity', inplace=True)
+
+        # Handle missing values: remove rows with NaN values
+        df = df.dropna()
 
         if request.action == "analyze":
             # Select only numeric columns for the BART model
             numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
             if numeric_cols:
                 X = df[numeric_cols].to_numpy()
-                # Assuming y is the last column, will need to make user selectable
-                y = X[:, -1]  
+                y = X[:, -1] # Assuming y is the last column, will need to make user selectable
                 model.fit(X, y)
                 predictions = model.predict(X).flatten()
                 df.insert(0, 'Posterior Average (y hat)', predictions)  # Prepend predictions to the DataFrame
@@ -69,9 +71,6 @@ async def read_data(request: FileProcessRequest):
             df_final = pd.concat([df.head(num_rows_to_display), placeholder, df.tail(num_rows_to_display)], ignore_index=True)
         else:
             df_final = df
-
-        # Convert non-finite float values to strings
-        df_final = df_final.applymap(lambda x: 'NaN' if pd.isna(x) else x)
 
         # Convert the DataFrame to JSON
         json_data = df_final.to_dict(orient='records')
