@@ -5,7 +5,7 @@ from stochtree import BART
 
 class BartModel:
     def __init__(self):
-        self.model = BART()
+        self.model = BART(random_seed=12)
 
     def fit(self, X, y):
         """
@@ -14,7 +14,7 @@ class BartModel:
         y: numpy array of target values
         """
         try:
-            self.model.sample(X, y, 200, 100)
+            self.model.sample(X, y, 50, 2000)
         except Exception as e:
             print(f"Error during model fitting: {e}")
             raise
