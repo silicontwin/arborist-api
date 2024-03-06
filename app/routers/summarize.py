@@ -17,7 +17,7 @@ class FileProcessRequest(BaseModel):
     workspacePath: str
     selectedColumns: List[str] = []
     headTailRows: int = 20  # Number of head and tail observations to display
-    action: str = "summarize"  # Default action is summarize
+    action: str = "summarize" # Default action is summarize
 
 # Instantiate the model
 model = BartModel()
@@ -58,6 +58,7 @@ async def read_data(request: FileProcessRequest):
             numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
             if numeric_cols:
                 X = df[numeric_cols].to_numpy()
+                X = np.ascontiguousarray(X)
                 y = X[:, -1] # Assuming y is the last column, will need to make user selectable
                 model.fit(X, y)
                 predictions = model.predict(X).flatten()
