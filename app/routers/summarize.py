@@ -60,6 +60,7 @@ async def read_data(request: FileProcessRequest):
                 X = df[numeric_cols].to_numpy()
                 X = np.ascontiguousarray(X)
                 y = X[:, -1] # Assuming y is the last column, will need to make user selectable
+                X = X[:, :-1] # Subset covariates to remove outcome
                 model.fit(X, y)
                 predictions = model.predict(X).flatten()
                 df.insert(0, 'Posterior Average (y hat)', predictions)  # Prepend predictions to the DataFrame
