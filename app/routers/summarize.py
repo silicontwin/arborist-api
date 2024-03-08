@@ -62,8 +62,10 @@ async def read_data(request: FileProcessRequest):
                 y = X[:, -1] # Assuming y is the last column, will need to make user selectable
                 X = X[:, :-1] # Subset covariates to remove outcome
                 model.fit(X, y)
-                predictions = model.predict(X).flatten()
-                df.insert(0, 'Posterior Average (y hat)', predictions)  # Prepend predictions to the DataFrame
+                predictions, lower_bound, upper_bound = model.predict(X)
+                df.insert(0, 'Posterior Average (y hat)', predictions)
+                df.insert(1, '2.75th percentile', lower_bound)
+                df.insert(2, '97.5th percentile', upper_bound) # Prepend predictions to the DataFrame
             else:
                 raise HTTPException(status_code=400, detail="No numeric columns found for analysis")
 
