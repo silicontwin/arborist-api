@@ -26,7 +26,9 @@ class BartModel:
         """
         y_hat_samples = self.model.predict(X)
         y_hat_avg = y_hat_samples.mean(axis=1, keepdims=True)
-        return y_hat_avg
+        lower_bound = np.percentile(y_hat_samples, 2.75, axis=1)
+        upper_bound = np.percentile(y_hat_samples, 97.5, axis=1)
+        return y_hat_avg, lower_bound, upper_bound
 
 def process_input_data(input_data):
     """
