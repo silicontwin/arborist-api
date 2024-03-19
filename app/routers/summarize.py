@@ -103,7 +103,7 @@ async def read_data(request: FileProcessRequest):
                 model.fit(X, y)
                 predictions, lower_bound, upper_bound = model.predict(X)
                 df_cleaned.insert(0, 'Posterior Average (y hat)', predictions)
-                df_cleaned.insert(1, '2.75th percentile', lower_bound)
+                df_cleaned.insert(1, '2.5th percentile', lower_bound)
                 df_cleaned.insert(2, '97.5th percentile', upper_bound)
             else:
                 raise HTTPException(status_code=400, detail="No numeric columns found for analysis")
