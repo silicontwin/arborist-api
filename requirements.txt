@@ -2,7 +2,8 @@
 
 aiofiles
 fastapi
-git+https://github.com/andrewherren/StochasticTree.git#subdirectory=python-package
+# git+https://github.com/andrewherren/StochasticTree.git#subdirectory=python-package
+git+https://github.com/andrewherren/StochasticTree.git@afe4785332216c4df823d5182efa20854254be64#subdirectory=python-package
 jupyterlab
 mangum
 matplotlib
