@@ -1,9 +1,8 @@
-# /requirements.txt
+# requirements.txt
 
 aiofiles
 fastapi
-# git+https://github.com/andrewherren/StochasticTree.git#subdirectory=python-package
-git+https://github.com/andrewherren/StochasticTree.git@afe4785332216c4df823d5182efa20854254be64#subdirectory=python-package
+git+https://github.com/StochasticTree/stochtree-python.git
 jupyterlab
 mangum
 matplotlib
@@ -17,4 +16,5 @@ pyreadstat
 python-multipart
 scipy
 seaborn
+scikit-learn
 uvicorn
