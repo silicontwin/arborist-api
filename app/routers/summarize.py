@@ -6,10 +6,9 @@ import pyarrow.dataset as ds
 import os
 import pandas as pd
 import numpy as np
-from app.model import BartModel
+from stochtree import BARTModel
 import logging
 from typing import List, Optional
-from stochtree import Dataset, Residual, RNG, ForestSampler, ForestContainer, GlobalVarianceModel, LeafVarianceModel
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -20,13 +19,10 @@ router = APIRouter()
 class FileProcessRequest(BaseModel):
     fileName: str  # Can also be a directory of CSVs
     workspacePath: str
-    selectedColumns: List[str] = []  # Columns to be processed
-    outcomeVariable: Optional[str] = None  # Outcome variable
-    headTailRows: int = 20  # Number of head and tail observations to display
-    action: str = "summarize"  # Default action is summarize
-
-# Instantiate the model
-model = BartModel()
+    selectedColumns: List[str] = []
+    outcomeVariable: Optional[str] = None
+    headTailRows: int = 20
+    action: str = "summarize"
 
 @router.post("/summarize")
 async def read_data(request: FileProcessRequest):
@@ -87,7 +83,6 @@ async def read_data(request: FileProcessRequest):
 
         if request.action == "analyze":
             logger.debug("Action: analyze")
-            # Select only numeric columns for the BART model
             numeric_cols = df_cleaned.select_dtypes(include=[np.number]).columns.tolist()
             logger.debug(f"Numeric columns: {numeric_cols}")
             if numeric_cols:
@@ -96,92 +91,62 @@ async def read_data(request: FileProcessRequest):
                     logger.error(error_msg)
                     raise HTTPException(status_code=400, detail=error_msg)
 
-                X = df_cleaned[numeric_cols].to_numpy()
-                X = np.ascontiguousarray(X)
-                y = df_cleaned[request.outcomeVariable].to_numpy()  # Use the selected outcome variable
+                # Select the user-specified features and outcome variable
+                features = [col for col in request.selectedColumns if col != request.outcomeVariable]
+                outcome = request.outcomeVariable
+
+                X = df_cleaned[features].to_numpy()
+                y = df_cleaned[outcome].to_numpy()
                 logger.debug(f"X shape: {X.shape}")
                 logger.debug(f"y shape: {y.shape}")
+                logger.debug(f"X values: {X[:5]}")
+                logger.debug(f"y values: {y[:5]}")
 
-                # Standardize outcome
-                y_bar = np.mean(y)
-                y_std = np.std(y)
-                resid = (y - y_bar) / y_std
-                logger.debug("Outcome standardized")
+                # Create an instance of BARTModel
+                model = BARTModel()
 
-                # Convert data to StochTree representation
-                dataset = Dataset()
-                dataset.add_covariates(X)
-                residual = Residual(resid)
-                logger.debug("Data converted to StochTree representation")
+                # Log BART model parameters
+                logger.debug(f"BART model parameters: num_trees=100, num_gfr=10, num_mcmc=100")
 
-                # Set sampling parameters
-                alpha = 0.9
-                beta = 1.25
-                min_samples_leaf = 1
-                num_trees = 100
-                cutpoint_grid_size = 100
-                global_variance_init = 1.0
-                tau_init = 0.5
-                leaf_prior_scale = np.array([[tau_init]], order='C')
-                nu = 4.0
-                lamb = 0.5
-                a_leaf = 2.0
-                b_leaf = 0.5
-                leaf_regression = True
-                feature_types = np.repeat(0, X.shape[1]).astype(int)  # 0 = numeric
-                var_weights = np.repeat(1 / X.shape[1], X.shape[1])
-                logger.debug("Sampling parameters set")
+                # Create a dummy basis array with a single column filled with zeros
+                basis_train = np.zeros((X.shape[0], 1))
 
-                # Initialize tracking and sampling classes
-                forest_container = ForestContainer(num_trees, 1, False)
-                forest_sampler = ForestSampler(dataset, feature_types, num_trees, X.shape[0], alpha, beta, min_samples_leaf)
-                cpp_rng = RNG(1234)  # Set a random seed
-                global_var_model = GlobalVarianceModel()
-                leaf_var_model = LeafVarianceModel()
-                logger.debug("Tracking and sampling classes initialized")
+                # Sample the BART model
+                model.sample(X_train=X, y_train=y, basis_train=basis_train, num_trees=100, num_gfr=10, num_mcmc=100)
 
-                # Prepare to run the sampler
-                num_warmstart = 10
-                num_mcmc = 100
-                num_samples = num_warmstart + num_mcmc
-                global_var_samples = np.concatenate((np.array([global_variance_init]), np.repeat(0, num_samples)))
-                logger.debug("Sampler prepared")
+                # Create a dummy basis array for prediction
+                basis_pred = np.zeros((X.shape[0], 1))
 
-                try:
-                    # Run the XBART sampler
-                    logger.debug("Running XBART sampler")
-                    for i in range(num_warmstart):
-                        logger.debug(f"XBART iteration: {i}")
-                        try:
-                            forest_sampler.sample_one_iteration(forest_container, dataset, residual, cpp_rng, feature_types, cutpoint_grid_size, leaf_prior_scale, var_weights, global_var_samples[i], 1, True, False)
-                            global_var_samples[i+1] = global_var_model.sample_one_iteration(residual, cpp_rng, nu, lamb)
-                            logger.debug(f"XBART iteration {i} completed successfully")
-                        except Exception as e:
-                            logger.exception(f"Error during XBART iteration {i}:")
-                            raise
-                except Exception as e:
-                    logger.exception("Error during XBART sampling:")
-                    raise
+                # Predict using the trained model
+                y_pred = model.predict(covariates=X, basis=basis_pred)
+                logger.debug(f"y_pred shape: {y_pred.shape}")
+                logger.debug(f"y_pred values: {y_pred[:5]}")
 
-                # Run the MCMC (BART) sampler
-                logger.debug("Running MCMC (BART) sampler")
-                for i in range(num_warmstart, num_samples):
-                    try:
-                        forest_sampler.sample_one_iteration(forest_container, dataset, residual, cpp_rng, feature_types, cutpoint_grid_size, leaf_prior_scale, var_weights, global_var_samples[i], 1, False, False)
-                        global_var_samples[i+1] = global_var_model.sample_one_iteration(residual, cpp_rng, nu, lamb)
-                        logger.debug(f"MCMC iteration {i - num_warmstart} completed successfully")
-                    except Exception as e:
-                        logger.exception(f"Error during MCMC iteration {i - num_warmstart}:")
-                        raise
+                # Transpose the y_pred array
+                y_pred_transposed = y_pred.T
+                logger.debug(f"y_pred_transposed shape: {y_pred_transposed.shape}")
+                logger.debug(f"y_pred_transposed values: {y_pred_transposed[:, :5]}")
 
-                # Extract mean function and error variance posterior samples
-                forest_preds = forest_container.predict(dataset) * y_std + y_bar
-                forest_preds_mcmc = forest_preds[:, num_warmstart:num_samples]
-                logger.debug("Mean function and error variance posterior samples extracted")
+                # Ensure the length of y_pred_transposed matches the DataFrame's index length
+                if y_pred_transposed.shape[1] != len(df_cleaned):
+                    error_msg = f"Length of y_pred_transposed ({y_pred_transposed.shape[1]}) does not match length of DataFrame ({len(df_cleaned)})"
+                    logger.error(error_msg)
+                    raise HTTPException(status_code=500, detail=error_msg)
 
-                df_cleaned['Posterior Average (y hat)'] = forest_preds_mcmc.mean(axis=1)
-                df_cleaned['2.5th percentile'] = np.percentile(forest_preds_mcmc, 2.5, axis=1)
-                df_cleaned['97.5th percentile'] = np.percentile(forest_preds_mcmc, 97.5, axis=1)
+                # Compute posterior summaries
+                posterior_mean = y_pred_transposed.mean(axis=0)
+                percentile_2_5 = np.percentile(y_pred_transposed, 2.5, axis=0)
+                percentile_97_5 = np.percentile(y_pred_transposed, 97.5, axis=0)
+
+                logger.debug(f"posterior_mean: {posterior_mean[:5]}")
+                logger.debug(f"percentile_2_5: {percentile_2_5[:5]}")
+                logger.debug(f"percentile_97_5: {percentile_97_5[:5]}")
+
+                # Prepend the posterior summary columns to the DataFrame
+                df_cleaned.insert(0, '97.5th percentile', percentile_97_5)
+                df_cleaned.insert(0, '2.5th percentile', percentile_2_5)
+                df_cleaned.insert(0, 'Posterior Average (y hat)', posterior_mean)
+
                 logger.debug("Posterior summaries added to DataFrame")
             else:
                 error_msg = "No numeric columns found for analysis"
