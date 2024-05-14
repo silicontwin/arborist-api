@@ -102,6 +102,12 @@ async def read_data(request: FileProcessRequest):
                 logger.debug(f"X values: {X[:5]}")
                 logger.debug(f"y values: {y[:5]}")
 
+                # Additional logging to check for variability in X and y
+                logger.debug(f"X mean: {np.mean(X, axis=0)}")
+                logger.debug(f"X std: {np.std(X, axis=0)}")
+                logger.debug(f"y mean: {np.mean(y)}")
+                logger.debug(f"y std: {np.std(y)}")
+
                 # Create an instance of BARTModel
                 model = BARTModel()
 
@@ -113,6 +119,7 @@ async def read_data(request: FileProcessRequest):
 
                 # Sample the BART model
                 model.sample(X_train=X, y_train=y, basis_train=basis_train, num_trees=100, num_gfr=10, num_mcmc=100)
+                logger.debug("Model training completed")
 
                 # Create a dummy basis array for prediction
                 basis_pred = np.zeros((X.shape[0], 1))
@@ -121,6 +128,14 @@ async def read_data(request: FileProcessRequest):
                 y_pred = model.predict(covariates=X, basis=basis_pred)
                 logger.debug(f"y_pred shape: {y_pred.shape}")
                 logger.debug(f"y_pred values: {y_pred[:5]}")
+
+                # Check for variability in y_pred
+                logger.debug(f"y_pred mean: {np.mean(y_pred)}")
+                logger.debug(f"y_pred std: {np.std(y_pred)}")
+
+                if np.all(y_pred == y_pred[0]):
+                    logger.error("Predictions are all the same. Model may not be training correctly.")
+                    raise HTTPException(status_code=500, detail="Model predictions are not varying")
 
                 # Transpose the y_pred array
                 y_pred_transposed = y_pred.T
