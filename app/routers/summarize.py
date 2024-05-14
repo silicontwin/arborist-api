@@ -70,16 +70,6 @@ async def read_data(request: FileProcessRequest):
         response_data = {}
 
         if request.action == "analyze":
-            # # Ensure the outcomeVariable column exists in the DataFrame and is specified
-            # if request.outcomeVariable and request.outcomeVariable not in df_cleaned.columns:
-            #     raise HTTPException(status_code=422, detail=f"Outcome variable '{request.outcomeVariable}' not found in the data")
-
-            # # Reorder the columns to ensure outcomeVariable is the last column, if it's specified
-            # if request.outcomeVariable:
-            #     cols = [col for col in df_cleaned.columns if col != request.outcomeVariable] + [request.outcomeVariable]
-            #     df_cleaned = df_cleaned[cols]
-
-
             # Select only numeric columns for the BART model
             numeric_cols = df_cleaned.select_dtypes(include=[np.number]).columns.tolist()
             if numeric_cols:
@@ -87,18 +77,6 @@ async def read_data(request: FileProcessRequest):
                 X = np.ascontiguousarray(X)
                 y = X[:, -1]  # Assuming y is the last column, will need to make user selectable
                 X = X[:, :-1]  # Subset covariates to remove outcome
-
-                # y = df_cleaned.iloc[:, -1].to_numpy()
-                # X = df_cleaned.iloc[:, :-1].to_numpy()  # All columns except the last one
-
-                # ---
-
-                # # Set the y variable to outcomeVariable or default to the last column
-                # y_column = request.outcomeVariable if request.outcomeVariable and request.outcomeVariable in df_cleaned.columns else df_cleaned.columns[-1]
-                # y = df_cleaned[y_column].to_numpy()
-
-                # # Ensure X does not include the y column
-                # X = df_cleaned.loc[:, df_cleaned.columns != y_column].to_numpy()
 
                 model.fit(X, y)
                 predictions, lower_bound, upper_bound = model.predict(X)
