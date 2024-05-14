@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 from app.routers.plot import router as plot
 from app.routers.settings import router as settings
 from app.routers.status import router as status
-# from app.routers.summarize import router as summarize
+from app.routers.summarize import router as summarize
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -23,7 +23,7 @@ app.add_middleware(
 app.include_router(plot)
 app.include_router(settings)
 app.include_router(status)
-# app.include_router(summarize)
+app.include_router(summarize)
 
 
 @app.get("/")
