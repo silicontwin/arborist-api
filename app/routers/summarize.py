@@ -124,24 +124,27 @@ async def read_data(request: FileProcessRequest):
                 logger.debug(f"y mean: {np.mean(y)}")
                 logger.debug(f"y std: {np.std(y)}")
 
+                # Standardize the outcome variable
+                y_bar = np.mean(y)
+                y_std = np.std(y)
+                y = (y - y_bar) / y_std
+                logger.debug(f"Standardized y values: {y[:5]}")
+
                 # Create an instance of BARTModel
                 model = BARTModel()
 
                 # Log BART model parameters
                 logger.debug(f"BART model parameters: num_trees=100, num_gfr=10, num_mcmc=100")
 
-                # Create a dummy basis array with a single column filled with zeros
-                basis_train = np.zeros((X.shape[0], 1))
+                # Create a dummy basis array with a single column filled with ones
+                W = np.ones((X.shape[0], 1))
 
                 # Sample the BART model
-                model.sample(X_train=X, y_train=y, basis_train=basis_train, num_trees=100, num_gfr=10, num_mcmc=100)
+                model.sample(X_train=X, y_train=y, basis_train=W, num_trees=100, num_gfr=10, num_mcmc=100)
                 logger.debug("Model training completed")
 
-                # Create a dummy basis array for prediction
-                basis_pred = np.zeros((X.shape[0], 1))
-
-                # Predict using the trained model
-                y_pred = model.predict(covariates=X, basis=basis_pred)
+                # Predict using the trained model on the same data used for training
+                y_pred = model.predict(covariates=X, basis=W) * y_std + y_bar
                 logger.debug(f"y_pred shape: {y_pred.shape}")
                 logger.debug(f"y_pred values: {y_pred[:5]}")
 
@@ -153,32 +156,26 @@ async def read_data(request: FileProcessRequest):
                     logger.error("Predictions are all the same. Model may not be training correctly.")
                     raise HTTPException(status_code=500, detail="Model predictions are not varying")
 
-                # Transpose the y_pred array
-                y_pred_transposed = y_pred.T
-                logger.debug(f"y_pred_transposed shape: {y_pred_transposed.shape}")
-                logger.debug(f"y_pred_transposed values: {y_pred_transposed[:, :5]}")
-
-                # Ensure the length of y_pred_transposed matches the DataFrame's index length
-                if y_pred_transposed.shape[1] != len(df_cleaned):
-                    error_msg = f"Length of y_pred_transposed ({y_pred_transposed.shape[1]}) does not match length of DataFrame ({len(df_cleaned)})"
-                    logger.error(error_msg)
-                    raise HTTPException(status_code=500, detail=error_msg)
-
                 # Compute posterior summaries
-                posterior_mean = y_pred_transposed.mean(axis=0)
-                percentile_2_5 = np.percentile(y_pred_transposed, 2.5, axis=0)
-                percentile_97_5 = np.percentile(y_pred_transposed, 97.5, axis=0)
+                posterior_mean = np.mean(y_pred, axis=1)
+                percentile_2_5 = np.percentile(y_pred, 2.5, axis=1)
+                percentile_97_5 = np.percentile(y_pred, 97.5, axis=1)
 
                 logger.debug(f"posterior_mean: {posterior_mean[:5]}")
                 logger.debug(f"percentile_2_5: {percentile_2_5[:5]}")
                 logger.debug(f"percentile_97_5: {percentile_97_5[:5]}")
 
-                # Prepend the posterior summary columns to the DataFrame
-                df_cleaned.insert(0, '97.5th percentile', percentile_97_5)
-                df_cleaned.insert(0, '2.5th percentile', percentile_2_5)
-                df_cleaned.insert(0, 'Posterior Average (y hat)', posterior_mean)
+                # Create a new DataFrame with the posterior summaries
+                posterior_df = pd.DataFrame({
+                    'Posterior Average (y hat)': posterior_mean,
+                    '2.5th percentile': percentile_2_5,
+                    '97.5th percentile': percentile_97_5
+                }, index=df_cleaned.index)
 
-                logger.debug("Posterior summaries added to DataFrame")
+                # Prepend the posterior summary columns to the cleaned DataFrame
+                df_cleaned = pd.concat([posterior_df, df_cleaned], axis=1)
+
+                logger.debug("Posterior summaries prepended to DataFrame")
             else:
                 error_msg = "No numeric columns found for analysis"
                 logger.error(error_msg)
