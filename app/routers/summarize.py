@@ -10,9 +10,23 @@ from stochtree import BARTModel
 import logging
 from typing import List, Optional
 
+# Custom Formatter
+class CustomFormatter(logging.Formatter):
+    def format(self, record):
+        log_message = super().format(record)
+        # custom_message = f"• {record.msg} | {record.levelname}:{record.name}"
+        # custom_message = f"• {record.msg} | {record.name}"
+        custom_message = f"• {record.msg}"
+        return custom_message
+
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+handler = logging.StreamHandler()
+handler.setLevel(logging.DEBUG)
+formatter = CustomFormatter()
+handler.setFormatter(formatter)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(handler)
 
 router = APIRouter()
 
