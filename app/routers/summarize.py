@@ -107,7 +107,9 @@ async def read_data(request: FileProcessRequest):
 
                 # Select the user-specified features and outcome variable
                 features = [col for col in request.selectedColumns if col != request.outcomeVariable]
+                logger.debug(f"Features: {features}")
                 outcome = request.outcomeVariable
+                logger.debug(f"Outcome variable: {outcome}")
 
                 X = df_cleaned[features].to_numpy()
                 y = df_cleaned[outcome].to_numpy()
