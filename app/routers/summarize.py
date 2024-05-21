@@ -71,6 +71,9 @@ async def read_data(request: FileProcessRequest):
         df = table.to_pandas()
         logger.debug("PyArrow table converted to Pandas DataFrame")
 
+        # Log the data types of each column
+        logger.debug(f"Column data types: {df.dtypes}")
+
         # Select only the requested columns
         if request.selectedColumns:
             missing_columns = set(request.selectedColumns) - set(df.columns)
