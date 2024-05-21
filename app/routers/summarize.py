@@ -136,6 +136,8 @@ async def read_data(request: FileProcessRequest):
                 # Create an instance of BARTModel
                 model = BARTModel()
 
+                # Use `model.predict` for generating predictions for unseen data
+
                 # Log BART model parameters
                 logger.debug(f"BART model parameters: num_trees=100, num_gfr=10, num_mcmc=100")
 
@@ -143,6 +145,7 @@ async def read_data(request: FileProcessRequest):
                 W = np.ones((X.shape[0], 1))
 
                 # Sample the BART model
+                # Try `basis_train=None` OR omitting `basis_train`
                 model.sample(X_train=X, y_train=y, basis_train=W, num_trees=100, num_gfr=10, num_mcmc=100)
                 logger.debug("Model training completed")
 
