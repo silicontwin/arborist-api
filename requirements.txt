@@ -10,7 +10,8 @@ numpy
 pandas
 plotnine
 pyarrow
-pyinstaller
+pybind11
+pyinstaller --upgrade
 pytest
 pyreadstat
 python-multipart
