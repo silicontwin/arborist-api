@@ -2,7 +2,6 @@
 
 aiofiles
 fastapi
-git+https://github.com/StochasticTree/stochtree-python.git
 jupyterlab
 mangum
 matplotlib
@@ -11,11 +10,12 @@ pandas
 plotnine
 pyarrow
 pybind11
-pyinstaller --upgrade
+pyinstaller
 pytest
 pyreadstat
 python-multipart
 scipy
 seaborn
 scikit-learn
+stochtree
 uvicorn
